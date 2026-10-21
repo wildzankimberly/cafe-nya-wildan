@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-amber-50/30">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Digital - Kopi & Senja Cafe</title>
+    
+    <!-- 
+      ========================================================================
+      1. CSS EXTERNAL & FRAMEWORK (TAILWIND CSS & FONTAWESOME)
+      ========================================================================
+      - Tailwind CSS CDN: Framework CSS utilitas untuk styling cepat tanpa menulis CSS manual berlebih.
+      - FontAwesome CDN: Library ikon grafis (seperti ikon keranjang, bintang, pencarian).
+      - Google Fonts: Menggunakan font 'Plus Jakarta Sans' agar tampilan modern dan bersih.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- 
+      ========================================================================
+      2. KONFIGURASI TAILWIND CUSTOM THEME
+      ========================================================================
+      Di sini kita mendefinisikan warna tema khusus 'espresso' & 'cream'
+      agar sesuai dengan nuansa estetik kafe kekinian.
+    -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        espresso: {
+                            50: '#FAF6F0',
+                            100: '#F4ECE1',
+                            200: '#E5D3BD',
+                            500: '#9E7246',
+                            700: '#684524',
+                            800: '#4A2E14',
+                            900: '#2C1808',
+                        },
+                        warm: {
+                            50: '#FFFDF9',
+                            100: '#FFF8EE',
+                            500: '#F59E0B',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Stylesheet untuk animasi dan scrollbar khusus -->
+    <style>
+        /* Mengatur agar pergerakan scroll halus saat klik menu/kategori */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Menyembunyikan scrollbar bawaan browser agar tampilan seperti aplikasi mobile native */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Styling badge kategori khusus */
+        .badge-populer { background-color: #FEF3C7; color: #92400E; }
+        .badge-baru { background-color: #DBEAFE; color: #1E40AF; }
+        .badge-pedas { background-color: #FEE2E2; color: #991B1B; }
+    </style>
+</head>
+
+<body class="font-sans text-espresso-900 bg-espresso-50 flex flex-col min-h-screen pb-28 antialiased selection:bg-espresso-200">
+
+    <!-- 
+      ========================================================================
+      3. HEADER KAFE (SEMANTIC HTML: <header>)
+      ========================================================================
+      Bagian atas halaman memuat identitas kafe, foto banner pendukung,
+      serta penunjuk nomor meja pelanggan.
+    -->
+    <header class="relative bg-espresso-900 text-white rounded-b-3xl shadow-xl overflow-hidden">
+        <!-- Background Overlay Image dengan transparansi -->
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
+        
+        <!-- Header Content -->
+        <div class="relative max-w-md mx-auto px-5 pt-8 pb-7 text-center">
+            <!-- Indikator Nomor Meja -->
+            <div class="inline-flex items-center space-x-2 bg-espresso-800/90 text-espresso-100 text-xs px-3.5 py-1.5 rounded-full font-semibold mb-3 border border-espresso-700/50 backdrop-blur-sm shadow-sm">
+                <i class="fa-solid fa-qrcode text-warm-500"></i>
+                <span>Pesanan Meja #08</span>
+            </div>
+            
+            <h1 class="text-2xl font-extrabold tracking-tight text-white mb-1">Kopi & Senja Cafe</h1>
+            <p class="text-xs text-espresso-200 leading-relaxed max-w-xs mx-auto">
+                Pilih menu favoritmu secara praktis, langsung disiapkan dari dapur kami.
+            </p>
+        </div>
+    </header>
+
+    <!-- 
+      ========================================================================
+      4. BAR PENCARIAN & FILTER KATEGORI (STICKY NAVBAR)
+      ========================================================================
+      Menggunakan 'sticky top-0' agar bilah pencarian tetap menempel di atas saat di-scroll.
+    -->
+    <div class="sticky top-0 z-30 bg-espresso-50/95 backdrop-blur-md pt-4 pb-2 px-4 shadow-sm border-b border-espresso-100">
+        <div class="max-w-md mx-auto space-y-3">
+            
+            <!-- Form Pencarian Interaktif -->
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-espresso-500 text-sm"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Cari kopi, mie, atau pastry..." 
+                    class="w-full pl-10 pr-10 py-2.5 bg-white border border-espresso-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500/50 shadow-sm transition placeholder:text-espresso-500/60"
+                >
+                <button id="clearSearch" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-espresso-500 hover:text-espresso-800">
+                    <i class="fa-solid fa-circle-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Scroll Kategori Horizontal -->
+            <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1" id="categoryContainer">
+                <!-- Tombol Kategori Di-generate oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+      ========================================================================
+      5. KONTEN UTAMA - DAFTAR MENU (SEMANTIC HTML: <main>)
+      ========================================================================
+    -->
+    <main class="max-w-md mx-auto px-4 mt-5 flex-1 w-full">
+        <!-- Judul Kategori Terpilih & Jumlah Item -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="currentCategoryTitle" class="text-base font-bold text-espresso-900">Semua Menu</h2>
+            <span id="menuCount" class="text-xs text-espresso-700 font-semibold bg-espresso-100 px-3 py-1 rounded-full border border-espresso-200/50">0 menu</span>
+        </div>
+
+        <!-- Grid Container Kartu Menu -->
+        <div id="menuGrid" class="grid grid-cols-1 gap-4">
+            <!-- Kartu menu di-render secara dinamis via JavaScript -->
+        </div>
+
+        <!-- Tampilan Kosong (State saat pencarian tidak ditemukan) -->
+        <div id="emptyState" class="hidden text-center py-12 px-4 bg-white rounded-2xl border border-dashed border-espresso-200 mt-4">
+            <div class="w-14 h-14 bg-espresso-100 text-espresso-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-mug-hot text-2xl"></i>
+            </div>
+            <h3 class="font-bold text-espresso-800 text-sm">Menu tidak ditemukan</h3>
+            <p class="text-xs text-espresso-500 mt-1">Coba gunakan kata kunci lain atau pilih kategori yang berbeda.</p>
+        </div>
+    </main>
+
+    <!-- 
+      ========================================================================
+      6. FOOTER (SEMANTIC HTML: <footer>)
+      ========================================================================
+    -->
+    <footer class="max-w-md mx-auto px-4 py-6 text-center text-xs text-espresso-500 space-y-1">
+        <p class="font-semibold">Kopi & Senja Cafe &copy; 2026</p>
+        <p class="text-[10px] text-espresso-500/80">Dikembangkan untuk Media Pembelajaran Web Development (SMA/SMK)</p>
+    </footer>
+
+    <!-- 
+      ========================================================================
+      7. FLOATING CART BAR (NAVIGASI RINGKASAN KERANJANG DI BAGIAN BAWAH)
+      ========================================================================
+    -->
+    <div id="cartBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-espresso-200 px-4 py-3 shadow-2xl transition-transform duration-300 translate-y-full">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <!-- Total Harga & Jumlah Pesanan -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="openCartModal()">
+                <div class="relative bg-espresso-800 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-basket-shopping text-base"></i>
+                    <span id="cartCountBadge" class="absolute -top-1.5 -right-1.5 bg-warm-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-espresso-500 font-bold">Total Pesanan</p>
+                    <p id="cartTotalPrice" class="text-base font-extrabold text-espresso-900">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- Tombol Buka Modal Ringkasan Struk -->
+            <button onclick="openCartModal()" class="bg-espresso-800 hover:bg-espresso-900 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition shadow-md active:scale-95 flex items-center space-x-2">
+                <span>Lihat Pesanan</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 
+      ========================================================================
+      8. MODAL DETAIL MENU (POPUP INFORMASI LENGKAP MENU)
+      ========================================================================
+    -->
+    <div id="detailModal" class="fixed inset-0 z-50 bg-espresso-900/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl transition-all">
+            <!-- Visual Gambar / Emoji Modal Header -->
+            <div class="relative h-44 bg-espresso-100 flex items-center justify-center overflow-hidden">
+                <span id="modalEmoji" class="text-8xl transform hover:scale-110 transition duration-300">☕</span>
+                <button onclick="closeDetailModal()" class="absolute top-4 right-4 bg-white/80 hover:bg-white text-espresso-800 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Isi Informasi Detail -->
+            <div class="p-5 space-y-4">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1" id="modalBadges"></div>
+                    <h3 id="modalTitle" class="text-xl font-bold text-espresso-900">Nama Menu</h3>
+                    <p id="modalPrice" class="text-lg font-extrabold text-espresso-700 mt-0.5">Rp 0</p>
+                </div>
+
+                <p id="modalDescription" class="text-xs text-espresso-700 leading-relaxed">Deskripsi lengkap menu...</p>
+
+                <!-- Pilihan Varian (Suhu/Level) -->
+                <div class="border-t border-espresso-100 pt-3">
+                    <label class="block text-xs font-bold text-espresso-900 mb-2">Pilih Varian Sesuai Selera:</label>
+                    <div id="modalVariantContainer" class="flex flex-wrap gap-2 text-xs">
+                        <!-- Varian dimasukkan dinamis via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Informasi Nutrisi & Alergen -->
+                <div class="bg-espresso-50 rounded-xl p-3 grid grid-cols-2 gap-3 text-xs border border-espresso-100">
+                    <div>
+                        <span class="text-espresso-500 block text-[10px] font-semibold uppercase">Estimasi Kalori</span>
+                        <span id="modalCalories" class="font-bold text-espresso-800">0 kcal</span>
+                    </div>
+                    <div>
+                        <span class="text-espresso-500 block text-[10px] font-semibold uppercase">Potensi Alergen</span>
+                        <span id="modalAllergens" class="font-bold text-espresso-800">Tidak Ada</span>
+                    </div>
+                </div>
+
+                <!-- Tombol Tambahkan ke Keranjang -->
+                <button id="modalAddBtn" class="w-full bg-espresso-800 hover:bg-espresso-900 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 text-xs">
+                    <i class="fa-solid fa-cart-plus"></i>
+                    <span>Tambahkan ke Pesanan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+      ========================================================================
+      9. MODAL KERANJANG / RINGKASAN PESANAN
+      ========================================================================
+    -->
+    <div id="cartModal" class="fixed inset-0 z-50 bg-espresso-900/60 backdrop-blur-sm hidden flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl">
+            <!-- Modal Cart Header -->
+            <div class="p-4 border-b border-espresso-100 flex justify-between items-center bg-espresso-50 rounded-t-3xl">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-receipt text-espresso-700"></i>
+                    <h3 class="font-bold text-espresso-900 text-sm">Ringkasan Pesanan Kamu</h3>
+                </div>
+                <button onclick="closeCartModal()" class="text-espresso-500 hover:text-espresso-800 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Daftar Item Pesanan dalam Keranjang -->
+            <div id="cartItemsContainer" class="p-4 overflow-y-auto space-y-3 flex-1">
+                <!-- Diisi secara dinamis oleh JavaScript -->
+            </div>
+
+            <!-- Cart Footer (Kalkulasi Total Bayar) -->
+            <div class="p-4 border-t border-espresso-100 space-y-3 bg-espresso-50">
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex justify-between text-espresso-500">
+                        <span>Subtotal Makanan & Minuman</span>
+                        <span id="cartSubtotal" class="font-semibold text-espresso-800">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-espresso-500">
+                        <span>Pajak Resto (10%)</span>
+                        <span id="cartTax" class="font-semibold text-espresso-800">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-extrabold text-espresso-900 pt-2 border-t border-espresso-200">
+                        <span>Total Pembayaran</span>
+                        <span id="cartGrandTotal">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Tombol Proses Pesanan / Ke Kasir -->
+                <button onclick="showReceiptModal()" class="w-full bg-espresso-800 hover:bg-espresso-900 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 text-xs">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Proses & Tunjukkan ke Kasir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+      ========================================================================
+      10. MODAL STRUK DIGITAL (SIMULASI UNTUK DITUNJUKKAN KE KASIR)
+      ========================================================================
+    -->
+    <div id="receiptModal" class="fixed inset-0 z-50 bg-espresso-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4 border-t-8 border-espresso-800">
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl mb-1">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 class="font-bold text-espresso-900 text-base">Struk Digital Pesanan</h3>
+                <p class="text-xs text-espresso-500">Silakan tunjukkan layar ini ke kasir untuk melakukan pembayaran.</p>
+            </div>
+
+            <!-- Kertas Struk Simulation -->
+            <div class="bg-espresso-50 p-3.5 rounded-xl border border-dashed border-espresso-300 text-xs space-y-2 font-mono">
+                <div class="flex justify-between text-espresso-600 font-bold border-b border-espresso-200 pb-2">
+                    <span>Meja: #08</span>
+                    <span id="receiptTime">00:00</span>
+                </div>
+                <div id="receiptItemsList" class="space-y-1.5 pt-1">
+                    <!-- Item Struk -->
+                </div>
+                <div class="pt-2 border-t border-espresso-200 flex justify-between font-bold text-espresso-900 text-sm">
+                    <span>Total Bayar:</span>
+                    <span id="receiptTotal">Rp 0</span>
+                </div>
+            </div>
+
+            <button onclick="resetOrder()" class="w-full bg-espresso-800 text-white font-semibold py-2.5 rounded-xl text-xs hover:bg-espresso-900 transition">
+                Selesai & Buat Pesanan Baru
+            </button>
+        </div>
+    </div>
+
+    <!-- 
+      ========================================================================
+      11. LOGIKA JAVASCRIPT (DATA MODEL, DOM MANIPULATION & EVENT HANDLERS)
+      ========================================================================
+    -->
+    <script>
+        /* 
+         ----------------------------------------------------------------------
+         A. DATA MODEL MENU (ARRAY OF OBJECTS)
+         ----------------------------------------------------------------------
+         Setiap menu diwakili oleh sebuah object yang menyimpan ID, Nama,
+         Kategori, Harga, Badge, Emoji Visual, serta Informasi Nutrisi.
+        */
+        const menuData = [
+            {
+                id: 1,
+                name: "Espresso Gula Aren",
+                category: "Kopi",
+                price: 22000,
+                badge: "Populer",
+                badgeClass: "badge-populer",
+                emoji: "☕",
+                description: "Perpaduan espresso double shot arabika lokal dengan gula aren murni dan susu segar yang creamy.",
+                variants: ["Dingin (Ice)", "Hangat (Hot)"],
+                calories: "180 kcal",
+                allergens: "Susu UHT",
+                rating: 4.8
+            },
+            {
+                id: 2,
+                name: "Cappuccino Vanilla",
+                category: "Kopi",
+                price: 25000,
+                badge: "Baru",
+                badgeClass: "badge-baru",
+                emoji: "🥛",
+                description: "Espresso kaya rasa dengan frothed milk tebal dan sentuhan sirup vanilla alami.",
+                variants: ["Dingin (Ice)", "Hangat (Hot)"],
+                calories: "160 kcal",
+                allergens: "Susu",
+                rating: 4.7
+            },
+            {
+                id: 3,
+                name: "Matcha Latte Creamy",
+                category: "Non-Kopi",
+                price: 28000,
+                badge: "Populer",
+                badgeClass: "badge-populer",
+                emoji: "🍵",
+                description: "Bubuk matcha autentik impor dari Uji, Jepang yang diseduh dengan susu murni yang lembut.",
+                variants: ["Dingin (Ice)", "Hangat (Hot)"],
+                calories: "210 kcal",
+                allergens: "Susu",
+                rating: 4.9
+            },
+            {
+                id: 4,
+                name: "Choco Hazelnut",
+                category: "Non-Kopi",
+                price: 26000,
+                badge: null,
+                badgeClass: "",
+                emoji: "🍫",
+                description: "Cokelat hitam melimpah berpadu dengan gurihnya aroma kacang hazelnut pilihan.",
+                variants: ["Dingin (Ice)", "Hangat (Hot)"],
+                calories: "240 kcal",
+                allergens: "Susu, Kacang",
+                rating: 4.6
+            },
+            {
+                id: 5,
+                name: "Nasi Goreng Senja",
+                category: "Makanan",
+                price: 32000,
+                badge: "Pedas",
+                badgeClass: "badge-pedas",
+                emoji: "🍳",
+                description: "Nasi goreng bumbu rempah spesial kafe disajikan dengan telur mata sapi dan kerupuk renyah.",
+                variants: ["Sedang", "Pedas Banget"],
+                calories: "520 kcal",
+                allergens: "Telur, Kedelai",
+                rating: 4.8
+            },
+            {
+                id: 6,
+                name: "Mie Ramen Pedas",
+                category: "Makanan",
+                price: 35000,
+                badge: "Pedas",
+                badgeClass: "badge-pedas",
+                emoji: "🍜",
+                description: "Ramen kuah kaldu pedas gurih dilengkapi topping telur ajitama dan irisan daging ayam.",
+                variants: ["Level 1", "Level 2", "Level 3"],
+                calories: "580 kcal",
+                allergens: "Gluten, Telur",
+                rating: 4.9
+            },
+            {
+                id: 7,
+                name: "Croissant Butter",
+                category: "Snack",
+                price: 18000,
+                badge: "Populer",
+                badgeClass: "badge-populer",
+                emoji: "🥐",
+                description: "Pastry khas Prancis yang renyah di luar dan sangat lembut berkilau di dalam.",
+                variants: ["Original Butter", "Cokelat Keju"],
+                calories: "260 kcal",
+                allergens: "Gluten, Susu, Mentega",
+                rating: 4.9
+            },
+            {
+                id: 8,
+                name: "French Fries Truffle",
+                category: "Snack",
+                price: 22000,
+                badge: null,
+                badgeClass: "",
+                emoji: "🍟",
+                description: "Kentang goreng potongan tebal yang disiram minyak truffle harum dan taburan peterseli.",
+                variants: ["Original Salt", "Spicy BBQ"],
+                calories: "310 kcal",
+                allergens: "Tidak Ada",
+                rating: 4.5
+            }
+        ];
+
+        // Daftar Kategori Unik
+        const categories = ["Semua", "Kopi", "Non-Kopi", "Makanan", "Snack"];
+
+        /* 
+         ----------------------------------------------------------------------
+         B. STATE APLIKASI (VARIABEL PENYIMPAN STATUS LOKAL)
+         ----------------------------------------------------------------------
+        */
+        let currentCategory = "Semua";
+        let searchQuery = "";
+        let cart = []; // Menyimpan array objek: { menuId, count, variant }
+
+        /* 
+         ----------------------------------------------------------------------
+         C. INISIALISASI SAAT HALAMAN SELESAI DIMUAT
+         ----------------------------------------------------------------------
+        */
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderMenuList();
+            setupSearchListeners();
+        });
+
+        /* 
+         ----------------------------------------------------------------------
+         D. MEMBUAT FILTER KATEGORI (FUNGSIONALITAS TOMBOL KATEGORI)
+         ----------------------------------------------------------------------
+        */
+        function renderCategories() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = categories.map(cat => {
+                const isActive = cat === currentCategory;
+                const activeStyle = isActive 
+                    ? 'bg-espresso-800 text-white shadow-md' 
+                    : 'bg-white text-espresso-700 hover:bg-espresso-100 border border-espresso-200';
+                return `
+                    <button onclick="selectCategory('${cat}')" 
+                        class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap font-semibold transition duration-200 ${activeStyle}">
+                        ${cat}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(cat) {
+            currentCategory = cat;
+            document.getElementById('currentCategoryTitle').innerText = cat === "Semua" ? "Semua Menu" : `Kategori: ${cat}`;
+            renderCategories();
+            renderMenuList();
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         E. EVENT LISTENER PENCARIAN (SEARCH BAR)
+         ----------------------------------------------------------------------
+        */
+        function setupSearchListeners() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                if (searchQuery.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+                renderMenuList();
+            });
+
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchQuery = '';
+                clearBtn.classList.add('hidden');
+                renderMenuList();
+            });
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         F. RENDER KARTU MENU KE DALAM DOM
+         ----------------------------------------------------------------------
+        */
+        function renderMenuList() {
+            const grid = document.getElementById('menuGrid');
+            const emptyState = document.getElementById('emptyState');
+            const countBadge = document.getElementById('menuCount');
+
+            // Logika Penyaringan Data berdasarkan Kategori dan Input Pencarian
+            const filteredMenu = menuData.filter(item => {
+                const matchesCategory = currentCategory === "Semua" || item.category === currentCategory;
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery) || 
+                                      item.description.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            countBadge.innerText = `${filteredMenu.length} menu`;
+
+            if (filteredMenu.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filteredMenu.map(item => {
+                // Hitung jumlah item ini di dalam keranjang
+                const cartItems = cart.filter(c => c.menuId === item.id);
+                const totalItemQty = cartItems.reduce((sum, c) => sum + c.count, 0);
+
+                return `
+                    <article class="bg-white rounded-2xl p-3.5 shadow-sm border border-espresso-100 flex space-x-3.5 transition hover:shadow-md">
+                        <!-- Emoji / Gambar Thumbnail -->
+                        <div onclick="openDetailModal(${item.id})" class="cursor-pointer bg-espresso-100 rounded-xl w-24 h-24 flex-shrink-0 flex items-center justify-center text-4xl select-none relative overflow-hidden">
+                            <span class="transform hover:scale-110 transition duration-200">${item.emoji}</span>
+                        </div>
+
+                        <!-- Detail Informasi Menu -->
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-1.5 mb-1">
+                                    ${item.badge ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${item.badgeClass}">${item.badge}</span>` : ''}
+                                    <span class="text-[10px] text-espresso-500 font-semibold"><i class="fa-solid fa-star text-warm-500"></i> ${item.rating}</span>
+                                </div>
+                                <h3 onclick="openDetailModal(${item.id})" class="font-bold text-espresso-900 text-xs sm:text-sm cursor-pointer hover:text-espresso-700 leading-snug">
+                                    ${item.name}
+                                </h3>
+                                <p class="text-[11px] text-espresso-500 line-clamp-1 mt-0.5 leading-relaxed">${item.description}</p>
+                            </div>
+
+                            <!-- Harga & Tombol Aksi Tambah -->
+                            <div class="flex items-center justify-between pt-2">
+                                <span class="font-extrabold text-espresso-900 text-xs">Rp ${item.price.toLocaleString('id-ID')}</span>
+                                
+                                ${totalItemQty === 0 ? `
+                                    <button onclick="addToCart(${item.id})" class="bg-espresso-100 hover:bg-espresso-800 hover:text-white text-espresso-800 text-xs px-3 py-1.5 rounded-lg font-bold transition active:scale-95 flex items-center space-x-1">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                        <span>Tambah</span>
+                                    </button>
+                                ` : `
+                                    <div class="flex items-center space-x-2 bg-espresso-100 border border-espresso-200 rounded-lg px-2 py-1">
+                                        <button onclick="updateCartQty(${item.id}, -1)" class="text-espresso-800 hover:text-espresso-900 text-xs font-bold px-1">
+                                            <i class="fa-solid fa-minus text-[10px]"></i>
+                                        </button>
+                                        <span class="text-xs font-bold text-espresso-900">${totalItemQty}</span>
+                                        <button onclick="addToCart(${item.id})" class="text-espresso-800 hover:text-espresso-900 text-xs font-bold px-1">
+                                            <i class="fa-solid fa-plus text-[10px]"></i>
+                                        </button>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         G. LOGIKA KERANJANG BELANJA (CART LOGIC)
+         ----------------------------------------------------------------------
+        */
+        function addToCart(menuId, selectedVariant = null) {
+            const menu = menuData.find(m => m.id === menuId);
+            const variant = selectedVariant || (menu.variants ? menu.variants[0] : 'Default');
+
+            // Cek apakah item dengan ID dan varian yang sama sudah ada di keranjang
+            const existing = cart.find(c => c.menuId === menuId && c.variant === variant);
+            
+            if (existing) {
+                existing.count += 1;
+            } else {
+                cart.push({ menuId: menuId, count: 1, variant: variant });
+            }
+
+            updateCartUI();
+            renderMenuList();
+        }
+
+        function updateCartQty(menuId, delta, variant = null) {
+            // Cari item dalam keranjang
+            const index = cart.findIndex(c => c.menuId === menuId && (variant ? c.variant === variant : true));
+            if (index !== -1) {
+                cart[index].count += delta;
+                if (cart[index].count <= 0) {
+                    cart.splice(index, 1);
+                }
+            }
+            updateCartUI();
+            renderMenuList();
+            renderCartDrawerItems();
+        }
+
+        function updateCartUI() {
+            const cartBar = document.getElementById('cartBar');
+            const totalCount = cart.reduce((sum, item) => sum + item.count, 0);
+
+            // Hitung Subtotal Harga
+            const subtotal = cart.reduce((sum, item) => {
+                const menu = menuData.find(m => m.id === item.menuId);
+                return sum + (menu ? menu.price * item.count : 0);
+            }, 0);
+
+            document.getElementById('cartCountBadge').innerText = totalCount;
+            document.getElementById('cartTotalPrice').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+            // Tampilkan/Sembunyikan Cart Bar Bawah
+            if (totalCount > 0) {
+                cartBar.classList.remove('translate-y-full');
+            } else {
+                cartBar.classList.add('translate-y-full');
+                closeCartModal();
+            }
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         H. MODAL DETAIL MENU LOGIC
+         ----------------------------------------------------------------------
+        */
+        function openDetailModal(id) {
+            const item = menuData.find(m => m.id === id);
+            if (!item) return;
+
+            document.getElementById('modalEmoji').innerText = item.emoji;
+            document.getElementById('modalTitle').innerText = item.name;
+            document.getElementById('modalPrice').innerText = `Rp ${item.price.toLocaleString('id-ID')}`;
+            document.getElementById('modalDescription').innerText = item.description;
+            document.getElementById('modalCalories').innerText = item.calories;
+            document.getElementById('modalAllergens').innerText = item.allergens;
+
+            // Render Badges
+            const badgeContainer = document.getElementById('modalBadges');
+            if (item.badge) {
+                badgeContainer.innerHTML = `<span class="text-xs font-bold px-2.5 py-0.5 rounded-md ${item.badgeClass}">${item.badge}</span>`;
+            } else {
+                badgeContainer.innerHTML = '';
+            }
+
+            // Render Radio Varian Menu
+            const variantContainer = document.getElementById('modalVariantContainer');
+            let selectedVariant = item.variants[0];
+
+            variantContainer.innerHTML = item.variants.map((v, idx) => `
+                <button type="button" onclick="setModalVariant('${v}', this)" 
+                    class="variant-btn px-3 py-1.5 rounded-lg border text-xs font-semibold transition ${idx === 0 ? 'bg-espresso-800 text-white border-espresso-800' : 'bg-white text-espresso-800 border-espresso-200'}">
+                    ${v}
+                </button>
+            `).join('');
+
+            // Tombol Tambah di Modal
+            const addBtn = document.getElementById('modalAddBtn');
+            addBtn.onclick = () => {
+                const activeBtn = variantContainer.querySelector('.bg-espresso-800');
+                const chosenVariant = activeBtn ? activeBtn.innerText.trim() : item.variants[0];
+                addToCart(item.id, chosenVariant);
+                closeDetailModal();
+            };
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function setModalVariant(variantName, btnElement) {
+            const allBtns = document.querySelectorAll('.variant-btn');
+            allBtns.forEach(b => {
+                b.classList.remove('bg-espresso-800', 'text-white', 'border-espresso-800');
+                b.classList.add('bg-white', 'text-espresso-800', 'border-espresso-200');
+            });
+            btnElement.classList.remove('bg-white', 'text-espresso-800', 'border-espresso-200');
+            btnElement.classList.add('bg-espresso-800', 'text-white', 'border-espresso-800');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         I. MODAL KERANJANG (CART DRAWER)
+         ----------------------------------------------------------------------
+        */
+        function openCartModal() {
+            renderCartDrawerItems();
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+
+        function closeCartModal() {
+            document.getElementById('cartModal').classList.add('hidden');
+        }
+
+        function renderCartDrawerItems() {
+            const container = document.getElementById('cartItemsContainer');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-espresso-500 py-6">Keranjang kamu masih kosong.</p>`;
+                return;
+            }
+
+            let subtotal = 0;
+
+            container.innerHTML = cart.map(item => {
+                const menu = menuData.find(m => m.id === item.menuId);
+                const itemTotal = menu.price * item.count;
+                subtotal += itemTotal;
+
+                return `
+                    <div class="flex items-center justify-between border-b border-espresso-100 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl bg-espresso-100 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">${menu.emoji}</span>
+                            <div>
+                                <h4 class="font-bold text-espresso-900 text-xs">${menu.name}</h4>
+                                <p class="text-[10px] text-espresso-500 font-semibold">Varian: ${item.variant}</p>
+                                <p class="text-[11px] text-espresso-700 font-bold mt-0.5">Rp ${menu.price.toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-1.5 bg-espresso-100 rounded-lg px-2 py-1">
+                                <button onclick="updateCartQty(${menu.id}, -1, '${item.variant}')" class="text-espresso-800 font-bold text-xs px-1">-</button>
+                                <span class="text-xs font-bold text-espresso-900">${item.count}</span>
+                                <button onclick="addToCart(${menu.id}, '${item.variant}')" class="text-espresso-800 font-bold text-xs px-1">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const tax = subtotal * 0.10; // Pajak 10%
+            const grandTotal = subtotal + tax;
+
+            document.getElementById('cartSubtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('cartTax').innerText = `Rp ${tax.toLocaleString('id-ID')}`;
+            document.getElementById('cartGrandTotal').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        }
+
+        /* 
+         ----------------------------------------------------------------------
+         J. STRUK DIGITAL & RESET PESANAN
+         ----------------------------------------------------------------------
+        */
+        function showReceiptModal() {
+            closeCartModal();
+            
+            const receiptList = document.getElementById('receiptItemsList');
+            let subtotal = 0;
+
+            receiptList.innerHTML = cart.map(item => {
+                const menu = menuData.find(m => m.id === item.menuId);
+                const itemTotal = menu.price * item.count;
+                subtotal += itemTotal;
+                return `
+                    <div class="flex justify-between text-espresso-800">
+                        <span>${item.count}x ${menu.name} (${item.variant})</span>
+                        <span>Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const grandTotal = subtotal * 1.10;
+            document.getElementById('receiptTotal').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+            
+            // Format jam pemesanan
+            const now = new Date();
+            document.getElementById('receiptTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function resetOrder() {
+            cart = [];
+            updateCartUI();
+            renderMenuList();
+            document.getElementById('receiptModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
